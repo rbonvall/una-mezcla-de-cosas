@@ -1,38 +1,79 @@
 <!doctype html>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="utf-8">
 <style>
   html {
     font-size: 20px;
-    font-family: sans-serif;
+    font-family: Arial, sans-serif;
     background-color: #f8f8f8;
   }
   header {
-    font-size: 1.2em;
-    font-style: italic;
-    padding: 1ex 0;
+    display: inline-block;
     text-align: center;
-    max-width: 18em;
-    border: 6px lightblue solid;
+    font-size: 0.9em;
+    font-style: italic;
+    border-bottom: 4px lightblue solid;
     margin-left: auto;
     margin-right: auto;
     margin-bottom: 4ex;
+    text-align: center;
   }
-  h1 {
-    margin-top: -0.5ex;
-    margin-bottom: -0.2ex;
+  header h1 {
+    font-size: 3.0em;
+    margin: 0;
     color: #222;
+    line-height: 1ex;
+  }
+  header div {
+    width: 100%;
+  }
+  header #hph-before {
+    text-align: left;
+    padding-left: 0.4em;
+  }
+  header #hph-after {
+    text-align: right;
   }
   .dim {
     color: lightgray;
   }
+  nav {
+    display: table;
+  }
+  nav p {
+    display: table-row;
+    margin-bottom: 3ex;
+  }
+  nav span, nav a {
+    display: table-cell;
+  }
+  nav p .date {
+    font-size: 0.6em;
+    padding-right: 1em;
+  }
 </style>
+
 <header>
-    una
-    <h1>
-        m&nbsp;e&nbsp;z<span class="dim">.</span>c&nbsp;l<span class="dim">/</span>a
-    </h1>
-    de cosas
+  <div id="hph-before">una</div>
+  <h1>m&nbsp;e&nbsp;z<span class="dim">.</span>c&nbsp;l<span class="dim">/</span>a</h1>
+  <div id="hph-after">de cosas</div>
 </header>
 
-<p>
-    Cero cosas por ahora.
-</p>
+<nav>
+  <p>
+    <span class="date"></span>
+    <a class="title" href="#">Acerca de</a> /
+    <a class="title" href="#">About</a>
+  </p>
+  <p>
+    <span class="date">2017-08-31</span>
+    <a class="title" href="../en/scala-typeclasses">The minimum about typeclasses in Scala</a>
+  </p>
+  <p>
+    <span class="date">2017-08-29</span>
+    <a class="title" href="../en/evolving">Evolving a website</a>
+  </p>
+</nav>
+
+<footer>
+</footer>

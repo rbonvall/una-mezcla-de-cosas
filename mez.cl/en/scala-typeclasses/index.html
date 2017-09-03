@@ -1,0 +1,206 @@
+<!doctype html>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="utf-8">
+<title>The minimum about Scala typeclasses (using the maximum)</title>
+<style>
+  html {
+    font-size: 20px;
+    font-family: Arial, sans-serif;
+    background-color: #f8f8f8;
+    padding: 0;
+  }
+  body {
+    margin: 0;
+    padding: 0;
+  }
+
+  article, header { margin: 0 0.3em; }
+  article > * {
+    padding-top: 0ex; padding-bottom: 0ex;
+    margin-top: 2ex; margin-bottom: 2ex;
+  }
+
+  @media (min-width: 600px) {
+    html { font-size: 22px; }
+    article, header { margin: 1ex 2em; }
+  }
+  @media (min-width: 1200px) {
+    html { font-size: 24px; }
+    article, header { margin: 3ex 3em; }
+  }
+
+  header h1 {
+    font-size: 1.5em;
+    color: #036;
+    margin-bottom: 0;
+  }
+  header small { font-size: 0.75em; }
+
+  article {
+    line-height: 2.5ex;
+    max-width: 35em;
+  }
+  article h1 { font-size: 1.5em; }
+
+  section.abstract {
+    font-size: 0.75em;
+    font-style: italic;
+  }
+
+
+  /* code { white-space: pre; } */
+  code .kw { color: #336; }
+  code .co { color: #aac; }
+
+  .dim {
+    color: lightgray;
+  }
+
+  ul {
+    font-size: 0.85em;
+  }
+
+  pre {
+    font-size: 0.7em;
+    line-height: 2ex;
+    overflow-x: auto;
+  }
+
+  nav {
+    font-size: 0.7em;
+    margin: 0;
+    padding: 0.5ex;
+    font-style: italic;
+    color: #888;
+    background-color: #dde;
+  }
+  nav a:link, nav a:visited {
+    text-decoration: none;
+    color: silver;
+  }
+  nav span {
+    font-weight: bold;
+    color: black;
+  }
+
+</style>
+
+<nav>
+  <a href="http://mez.cl/a/">
+    una
+    <span>m</span>&nbsp;<span>e</span>&nbsp;<span>z</span>.<span>c</span>&nbsp;<span>l</span>/<span>a</span>
+    de cosas
+  </a>
+</nav>
+
+<header>
+  <h1>The minimum about Scala typeclasses (using the maximum)</h1>
+  <small>2017-09-02 ❖ <i>by</i> Roberto Bonvallet</small>
+</header>
+
+<article>
+<section class="abstract"><p>This is a loose transcript of the talk about typeclasses I gave in a recent <a href="https://www.meetup.com/es/Santiago-Scala-Meetup/events/240507350/">Santiago Scala Meetup</a>. The talk was in Spanish but I decided to write this article in English, so be aware that many brilliant puns got lost in translation.</p></section>
+
+<p>This is a list of integers:</p>
+<div class="sourceCode"><pre class="sourceCode scala"><code class="sourceCode scala"><span class="kw">val</span> ns = List(<span class="dv">33</span>, <span class="dv">22</span>, <span class="dv">66</span>, <span class="dv">55</span>, <span class="dv">11</span>, <span class="dv">44</span>)</code></pre></div>
+<p>And this is a function for computing the maximum value of such a list:</p>
+<div class="sourceCode"><pre class="sourceCode scala"><code class="sourceCode scala"><span class="kw">def</span> <span class="fu">maximum</span>(ns: List[Int]): Int =
+  ns <span class="kw">match</span> {
+    <span class="kw">case</span>      Nil ⇒ ???
+    <span class="kw">case</span> n :: Nil ⇒ n
+    <span class="kw">case</span> n1 :: n2 :: rest ⇒
+      <span class="kw">if</span> (n1 &lt; n2) <span class="fu">maximum</span>(n2 :: rest)
+      <span class="kw">else</span>         <span class="fu">maximum</span>(n1 :: rest)
+  }</code></pre></div>
+<p>Does it work?</p>
+<pre><code>scala&gt; maximum(ns)
+res1: Int = 66</code></pre>
+<p>Yes, it does!</p>
+<p>Although this function only accepts lists of integers, the algorithm makes sense for any type that has some ordering. The only thing that’s <code>Int</code>-specific is the use of the <code>&lt;</code> operator.</p>
+<p>So let’s make this function generic. We want it to be polymorphic (so it works on different types) and typesafe (so it doesn’t work on <em>any</em> type, with the compiler rejecting uses that don’t make sense).</p>
+<p>Our goal will be to find the maximum of a list of persons, whatever that may mean:</p>
+<div class="sourceCode"><pre class="sourceCode scala"><code class="sourceCode scala"><span class="kw">case</span> <span class="kw">class</span> Date(year: Int, month: Int, day: Int)
+<span class="kw">case</span> <span class="kw">class</span> <span class="fu">Person</span>(name: String, height: Int, birthDate: Date)
+
+<span class="kw">val</span> ps: List[Person] = List(
+  <span class="fu">Person</span>(<span class="st">&quot;Aaron&quot;</span>, <span class="dv">180</span>, Date(<span class="dv">1985</span>, <span class="dv">4</span>, <span class="dv">15</span>)),
+  <span class="fu">Person</span>(<span class="st">&quot;Maria&quot;</span>, <span class="dv">155</span>, Date(<span class="dv">1998</span>, <span class="dv">3</span>, <span class="dv">31</span>)),
+  <span class="fu">Person</span>(<span class="st">&quot;Zoila&quot;</span>, <span class="dv">175</span>, Date(<span class="dv">1998</span>, <span class="dv">9</span>,  <span class="dv">1</span>))
+)</code></pre></div>
+<p>One approach is to define an abstract type for things that can be ordered and make <code>Person</code> implement it, let’s say by comparing people by their names. This is OO 101:</p>
+<div class="sourceCode"><pre class="sourceCode scala"><code class="sourceCode scala"><span class="kw">trait</span> Ordered[T] {
+  <span class="kw">def</span> ?&lt;?(that: T): Boolean
+}
+
+<span class="kw">case</span> <span class="kw">class</span> <span class="fu">Person</span>(name: String, height: Int, birthDate: Date) <span class="kw">extends</span> Ordered[Person] {
+  <span class="kw">def</span> ?&lt;?(that: Person) = <span class="kw">this</span>.<span class="fu">name</span> &lt; that.<span class="fu">name</span>
+}</code></pre></div>
+<p>Here I decided to call the comparison method <code>?&lt;?</code> to make it clear that it‘s not the same operator that we used for integers, but <code>&lt;</code> would have worked equally fine.</p>
+<p>Now <code>maximum</code> can accept anything that “is-an” ordered:</p>
+<div class="sourceCode"><pre class="sourceCode scala"><code class="sourceCode scala"><span class="kw">def</span> maximum[T](ts: List[Ordered[T]]): T =
+  ts <span class="kw">match</span> {
+    <span class="kw">case</span>      Nil ⇒ ???
+    <span class="kw">case</span> t :: Nil ⇒ t
+    <span class="kw">case</span> t1 :: t2 :: rest ⇒
+      <span class="kw">if</span> (t1 ?&lt;? t2) <span class="fu">maximum</span>(t2 :: rest)
+      <span class="kw">else</span>           <span class="fu">maximum</span>(t1 :: rest)
+  }</code></pre></div>
+<p>And we can find the maximum person:</p>
+<pre><code>scala&gt; maximum(ps)
+res1: Person = Person(Zoila,175,Date(1998,9,1))</code></pre>
+<p>This is a reasonable approach in many situations, but it has some limitations:</p>
+<ul>
+<li><p>We have forced persons to be ordered by name; a basketball recruiter probably would prefer to find the maximum person in terms of height, while a birthday party planner would rather find who has the maximum birthday date in the year (I’m just guessing what party planners cares about, I’m sure I’m right).</p></li>
+<li><p>Our generic function relies on other developers extending our base type, and none of the code out there in the wild does. Some coder that wants to use our generic function on a type defined by someone else in some other library will have to resort to the adapter pattern.</p></li>
+</ul>
+<p>For this particular example, we could also put on our lambda-shaped hat and require the comparison function to be passed as a parameter:</p>
+<div class="sourceCode"><pre class="sourceCode scala"><code class="sourceCode scala"><span class="kw">def</span> maximum[T](ts: List[T], lessThan: (T, T) ⇒ Boolean): T =
+  ts <span class="kw">match</span> {
+    <span class="kw">case</span>      Nil ⇒ ???
+    <span class="kw">case</span> t :: Nil ⇒ t
+    <span class="kw">case</span> t1 :: t2 :: rest ⇒
+      <span class="kw">if</span> (<span class="fu">lessThan</span>(t1, t2)) <span class="fu">maximum</span>(t2 :: rest)
+      <span class="kw">else</span>                  <span class="fu">maximum</span>(t1 :: rest)
+  }</code></pre></div>
+<p>which is nice and stuff but gets tedious if we need more behaviour: nobody wants to pass ten functions as arguments. For example, a generic function that operates on numeric types would need to accept functions to tell it how to add, substract, multiply, divide, etc. Or a function operating on values of more than one type would force you to pass function arguments for each of them.</p>
+<p>So, let’s put our lonely method into an object, so we have only one thing to pass around in case we want to add more operations:</p>
+<div class="sourceCode"><pre class="sourceCode scala"><code class="sourceCode scala"><span class="kw">object</span> OrderedPerson <span class="kw">extends</span> Ordered[Person] {
+  <span class="kw">def</span> <span class="fu">lessThan</span>(p1: Person, p2: Person) = p1.<span class="fu">height</span> &lt; p2.<span class="fu">height</span>
+}
+
+<span class="kw">def</span> maximum[T](ts: List[T], ops: Ordered[T]): T =
+  ts <span class="kw">match</span> {
+    <span class="kw">case</span>      Nil ⇒ ???
+    <span class="kw">case</span> t :: Nil ⇒ t
+    <span class="kw">case</span> t1 :: t2 :: rest ⇒
+      <span class="kw">if</span> (ops.<span class="fu">lessThan</span>(t1, t2)) <span class="fu">maximum</span>(t2 :: rest)
+      <span class="kw">else</span>                      <span class="fu">maximum</span>(t1 :: rest)
+  }</code></pre></div>
+<p>Ok, at this point we are close to have invented typeclasses, so let’s switch the terminology</p>
+<h2 id="enter-typeclasses">Enter typeclasses</h2>
+<p>Typeclasses are a technique for creating generic code that works on any type for which there is evidence that it satisfies some interface, in a typesafe fashion.</p>
+<p>In Haskell, typeclasses are a language feature. In Scala, on the other hand, they are a pattern (also called “the concept pattern”) that is implemented using implicits.</p>
+<p>Let’s create a typeclass for types that can be ordered, and modify the <code>maximum</code> function to use it:</p>
+<div class="sourceCode"><pre class="sourceCode scala"><code class="sourceCode scala"><span class="kw">trait</span> Ordering[T] {
+  <span class="kw">def</span> <span class="fu">lessThan</span>(t1: T, t2: T): Boolean
+}
+<span class="kw">def</span> maximum[T](ts: List[T], evidence: Ordering[T]): T =
+  ts <span class="kw">match</span> {
+    <span class="kw">case</span>      Nil ⇒ ???
+    <span class="kw">case</span> t :: Nil ⇒ t
+    <span class="kw">case</span> t1 :: t2 :: rest ⇒
+      <span class="kw">if</span> (evidence.<span class="fu">lessThan</span>(t1, t2)) <span class="fu">maximum</span>(t2 :: rest)
+      <span class="kw">else</span>                           <span class="fu">maximum</span>(t1 :: rest)
+  }</code></pre></div>
+<p>Notice that I called it <code>Ordering</code> rather that <code>Ordered</code> as above, since we will declare that a type “has-an ordering,” not that it “is-an ordered.” And this is how we could do it:</p>
+<div class="sourceCode"><pre class="sourceCode scala"><code class="sourceCode scala"><span class="kw">object</span> PersonHasOrdering <span class="kw">extends</span> Ordering[Person] {
+  <span class="co">// for you, my basketball recruiter friend</span>
+  <span class="kw">def</span> <span class="fu">lessThan</span>(p1: Person, p2: Person) = p1.<span class="fu">height</span> &lt; p2.<span class="fu">height</span>
+}</code></pre></div>
+<p>And now:</p>
+<pre><code>scala&gt; maximum(people, PersonHasOrdering)
+res1: Person = Person(...)</code></pre>
+</article>
+
+<footer>
+</footer>

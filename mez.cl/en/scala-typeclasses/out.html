@@ -1,0 +1,129 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title>The minimum to know about Scala typeclasses</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style>
+  html {
+    font-size: 20px;
+    font-family: Arial, sans-serif;
+    background-color: #f8f8f8;
+  }
+  @media (min-width: 800px)  { html { font-size: 22px; } }
+  /* @media (min-width: 1200px) { html { font-size: 24px; } } */
+
+  h1 { font-size: 2.3125em;} // 37 ÷ 16 = 2.3125
+  h2 { font-size: 1.75em; }  // 28 ÷ 16 = 1.75
+
+  code {
+      white-space: pre;
+  }
+
+  header {
+    font-style: italic;
+    padding: 1ex 0;
+    text-align: center;
+    max-width: 18em;
+    border: 6px lightblue solid;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 4ex;
+  }
+
+  article {
+    max-width: 30em;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .dim {
+    color: lightgray;
+  }
+  footer {
+    color: silver;
+  }
+
+  pre {
+    font-size: 0.7em;
+  }
+
+  </style>
+</head>
+<body>
+<div id="header">
+<h1 class="title">The minimum to know about Scala typeclasses</h1>
+</div>
+<p><em>This is a loose transcription of the talk about
+        typeclasses I gave in the recent <a
+            href="https://www.meetup.com/es/Santiago-Scala-Meetup/events/240507350/">Santiago
+            Scala Meetup</a>. The talk was in Spanish but I
+        decided to write this post in English, so be aware that
+        many brilliant puns were lost in
+        translation.</em></p>
+<p>This is a list of integers:</p>
+<pre><code>val ns = List(33, 22, 66, 55, 11, 44)</code></pre>
+<p>And this is a function for computing the maximum value of such a list:</p>
+<pre><code>def maximum(ns: List[Int]): Int =
+  ns match {
+    case      Nil =&gt; ???
+    case n :: Nil =&gt; n
+    case n1 :: n2 :: rest =&gt;
+      if (n1 &lt; n2) maximum(n2 :: rest)
+      else         maximum(n1 :: rest)
+  }</code></pre>
+<p>Does it work?</p>
+<pre><code>scala&gt; maximum(ns)
+res1: Int = 66</code></pre>
+<p>Yes, it does!</p>
+<p>Although this function only accepts lists of integers, the algorithm makes sense for any type that has some ordering. The only thing that’s <code>Int</code>-specific is the <code>&lt;</code> operator.</p>
+<p>Let’s make this function polymorphic. We want it to be generic (so it works on different types) but also typesafe (so the compiler rejects uses of the function when the types don’t make sense).</p>
+<p>Our goal is to find the maximum of a list of persons, whatever that may mean:</p>
+<pre><code>case class Date(year: Int, month: Int, day: Int)
+case class Person(name: String, height: Int, birthDate: Date)
+
+val ps: List[Person] = List(
+  Person(&quot;Aaron&quot;, 180, Date(1985, 4, 15)),
+  Person(&quot;Maria&quot;, 155, Date(1998, 3, 31)),
+  Person(&quot;Zoila&quot;, 175, Date(1998, 9,  1))
+)</code></pre>
+<p>One approach is to define an abstract type for things that can be ordered and make Person implement it, let’s say by comparing names lexicographically. This is OO 101:</p>
+<pre><code>trait Ordered[T] {
+  def ?&lt;?(that: T): Boolean
+}
+
+case class Person(name: String, height: Int, birthDate: Date) extends Ordered[Person] {
+  def ?&lt;?(that: Person) = this.name &lt; that.name
+}</code></pre>
+<p>Here I decided to call the comparison method <code>?&lt;?</code> to make it clear that it‘s not the same operator that we used for integers, but <code>&lt;</code> would have worked equally fine.</p>
+<p>Now <code>maximum</code> can accept anything that “is-an” ordered:</p>
+<pre><code>def maximum[T](ts: List[Ordered[T]]): T =
+  ts match {
+    case      Nil =&gt; ???
+    case t :: Nil =&gt; t
+    case t1 :: t2 :: rest =&gt;
+      if (t1 ?&lt;? t2) maximum(t2 :: rest)
+      else           maximum(t1 :: rest)
+  }</code></pre>
+<p>And we can find the maximum person:</p>
+<pre><code>scala&gt; maximum(ps)
+res1: Person = Person(Zoila,175,Date(1998,9,1))</code></pre>
+<p>This is a reasonable approach in many situations, but there are two potential drawbacks:</p>
+<ul>
+<li>We have forced persons to be ordered by name; a basketball recruiter probably would prefer to find the maximum person in terms of height.</li>
+<li>Our generic function relies on other library writers extending our base type, and none of the code out there in the wild does. Also, it’s not reasonable to expect other developers to implement every possible abstract interface that we come up with, even if it’s for their own benefit.</li>
+</ul>
+<p>For this particular example, we could also put on our lambda-shaped hat and require the comparison function to be passed as a parameter:</p>
+<pre><code>def maximum[T](ts: List[T], lessThan: (T, T) =&gt; Boolean): T =
+  ts match {
+    case      Nil =&gt; ???
+    case t :: Nil =&gt; t
+    case t1 :: t2 :: rest =&gt;
+      if (lessThan(t1, t2)) maximum(t2 :: rest)
+      else                  maximum(t1 :: rest)
+  }</code></pre>
+<p>which is nice and stuff but gets tedious if we need more behaviour: nobody wants to pass ten functions as arguments. For example, a generic function that operates on numeric types would need to accept functions to tell it how to add, substract, multiply, divide, etc.</p>
+<p>So, is there any technique for</p>
+</body>
+</html>
