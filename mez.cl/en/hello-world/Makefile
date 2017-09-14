@@ -3,3 +3,8 @@ index.html: index.md template.html
 
 watch:
 	while inotifywait -qre close_write .; do make; done
+
+clean:
+	rm -vi index.html
+
+.PHONY: watch clean
