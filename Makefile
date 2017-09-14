@@ -4,8 +4,13 @@ AWS = $(ENV)/bin/aws
 
 help:
 	@echo "Usage:"
+	@echo "  make all"
 	@echo "  make env"
 	@echo "  make sync"
+
+.PHONY: all
+all:
+	find . -mindepth 2 -name Makefile -printf '%h\n' | while read DIR; do make -C "$$DIR"; done
 
 $(ENV) $(PIP):
 	python3 -m venv $(ENV)
