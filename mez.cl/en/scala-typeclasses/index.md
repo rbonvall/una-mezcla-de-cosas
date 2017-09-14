@@ -39,7 +39,8 @@ res1: Int = 66
 Yes, it does!
 
 Although this function only accepts lists of integers,
-the algorithm makes sense for any type that has some ordering.
+the algorithm is the same for any type
+that has a notion of a maximum.
 The only thing that’s `Int`-specific
 is the use of the ``<`` operator.
 
@@ -63,7 +64,8 @@ val ps: List[Person] = List(
 )
 ~~~~
 
-One approach is to define an abstract type for things that can be ordered
+One approach is to define an abstract type
+for things that can be ordered
 and make `Person` implement it,
 let’s say by comparing people by their names.
 This is OO 101:
@@ -110,7 +112,7 @@ but it has some limitations:
   the maximum person in terms of height,
   while a birthday party planner would rather
   find who has the maximum birthday date in the year
-  (I’m just guessing what party planners cares about,
+  (I’m just guessing what party planners care about,
   I’m sure I’m right).
 
 * Our generic function relies on other developers
@@ -118,11 +120,12 @@ but it has some limitations:
   and none of the code out there in the wild does.
   Some coder that wants to use our generic function
   on a type defined by someone else in some other library
-  will have to resort to the adapter pattern.
+  will have to resort to have to write
+  some kind of adapter.
 
-For this particular example,
-we could also put on our lambda-shaped hat
-and require the comparison function
+For this particular use case,
+we also could have put on our lambda-shaped hat,
+requiring the comparison function
 to be passed as a parameter:
 
 ~~~~ {.scala}
@@ -139,6 +142,7 @@ def maximum[T](ts: List[T], lessThan: (T, T) ⇒ Boolean): T =
 which is nice and stuff but gets tedious
 if we need more behaviour:
 nobody wants to pass ten functions as arguments.
+
 For example,
 a generic function that operates on numeric types
 would need to accept functions to tell it
@@ -148,12 +152,17 @@ would force you to pass function arguments
 for each of them.
 
 So, let’s put our lonely method into an object,
-so we have only one thing to pass around
+so we have just one thing to pass around
 in case we want to add more operations:
 
 ~~~~ {.scala}
 object OrderedPerson extends Ordered[Person] {
+  // for you, my basketball recruiter friend
   def lessThan(p1: Person, p2: Person) = p1.height < p2.height
+
+  // Another operation we could have here
+  def equal(p1: Person, p2: Person) =
+    !lessThan(p1, p2) && !lessThan(p2, p1)
 }
 
 def maximum[T](ts: List[T], ops: Ordered[T]): T =
@@ -166,8 +175,18 @@ def maximum[T](ts: List[T], ops: Ordered[T]): T =
   }
 ~~~~
 
-Ok, at this point we are close to have invented typeclasses,
-so let’s switch the terminology 
+Are we there yet?
+-----------------
+
+At this point we are close to have invented typeclasses,
+so let’s switch the terminology appropiately.
+
+First of all, `Person` no longer *is* an ordered type,
+but rather it *has* an ordering,
+represented by our “bag of functions” `OrderedPerson`.
+
+`OrderedPerson` can be seen as a concrete evidence
+that 
 
 Enter typeclasses
 -----------------
@@ -206,7 +225,6 @@ And this is how we could do it:
 
 ~~~~ {.scala}
 object PersonHasOrdering extends Ordering[Person] {
-  // for you, my basketball recruiter friend
   def lessThan(p1: Person, p2: Person) = p1.height < p2.height
 }
 ~~~~
