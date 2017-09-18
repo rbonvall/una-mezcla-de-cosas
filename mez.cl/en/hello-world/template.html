@@ -20,6 +20,7 @@
     margin-top: 2ex; margin-bottom: 2ex;
   }
 
+  /* "The @media responsive framework" */
   @media (min-width: 600px) {
     html { font-size: 22px; }
     article, header { margin: 1ex 2em; }
@@ -47,24 +48,8 @@
     font-style: italic;
   }
 
-
-  /* code { white-space: pre; } */
-  code .kw { color: #336; }
-  code .co { color: #aac; }
-
   .dim {
     color: lightgray;
-  }
-
-  ul {
-    font-size: 0.85em;
-  }
-
-  pre {
-    font-size: 0.7em;
-    line-height: 2ex;
-    overflow-x: auto;
-    overflow-y: hidden;
   }
 
   nav {
@@ -100,10 +85,6 @@
 </header>
 
 <article>
-$if(abstract)$
-<section class="abstract">$abstract$</section>
-$endif$
-
 $body$
 </article>
 
