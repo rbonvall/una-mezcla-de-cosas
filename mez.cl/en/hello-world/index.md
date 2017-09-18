@@ -101,5 +101,5 @@ You’re welcome!
   <path fill="#f8f8f8" stroke="#f8f8f8" stroke-width="0.09375" d=" M 0.0 165.8 C 1.7 171.3 2.3 177.3 5.9 182.0 C 8.2 185.4 10.4 189.0 13.3 191.9 C 51.3 230.0 89.3 267.9 127.3 306.0 C 134.8 313.2 144.3 318.4 154.7 320.0 L 0.0 320.0 L 0.0 165.8 Z" />
   <path fill="#f8f8f8" stroke="#f8f8f8" stroke-width="0.09375" d=" M 315.9 179.1 C 317.9 174.9 318.7 170.3 320.0 165.8 L 320.0 320.0 L 165.4 320.0 C 176.0 318.4 185.6 313.0 193.2 305.5 C 230.7 267.9 268.3 230.4 305.8 192.8 C 309.9 188.9 312.8 183.9 315.9 179.1 Z" />
 </svg>
-<small>(“Under Construction” sign stolen from Wikipedia, in the spirit of the text above).</small>
+<small>(“Under Construction” sign [stolen](https://en.wikipedia.org/wiki/File:Under_construction_svg.svg) from Wikipedia, in the spirit of the text above).</small>
 
