@@ -1,6 +1,7 @@
 ENV = ./env
 PIP = $(ENV)/bin/pip
 AWS = $(ENV)/bin/aws
+PANFLUTE = $(ENV)/bin/panflute
 
 help:
 	@echo "Usage:"
@@ -15,8 +16,11 @@ all:
 $(ENV) $(PIP):
 	python3 -m venv $(ENV)
 
-$(AWS): $(PIP)
-	$< install awscli
+.PHONY: dependencies
+dependencies: $(AWS) $(PANFLUTE)
+
+$(AWS) $(PANFLUTE): $(PIP)
+	$< install awscli panflute
 
 .PHONY: sync
 sync: $(AWS)
