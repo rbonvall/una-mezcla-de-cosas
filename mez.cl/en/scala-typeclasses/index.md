@@ -219,6 +219,57 @@ res5: String = Zoila
 
 But we have just swept the explicitness under the rug!
 The function still knows that it’s getting an `Ordering` instance.
+Scala provides a shortcut for not having to list the implicit parameter
+(making it doubly implicit), which is the *context bound* syntax:
+
+~~~~ {.include .scala}
+file: typeclasses.sc
+from: BEGIN MaxWithContextBound
+to:   END MaxWithContextBound
+~~~~
+
+The type parameter `[T : Ordering]` states that
+there needs to be an implicit instance of `Ordering[T]`
+for the funcion to be used,
+but you may have already noticed that there is still a bit of ugliness:
+in order to call the `lessThan` method
+the instance needs to be summoned using `implicitly[Ordering[T]]`.
 
 
+The missing piece: a final touch of implicitness
+================================================
+
+To remove the remaining reference to the typeclass instance,
+what is usually done is creating an implicit class
+that wraps its methods:
+
+~~~~ {.include .scala}
+file: typeclasses.sc
+from: BEGIN OrderingOps
+to:   END OrderingOps
+~~~~
+
+And this is the final `maximum` function:
+
+~~~~ {.include .scala}
+file: typeclasses.sc
+from: BEGIN MaxUsingOrderingOps
+to:   END MaxUsingOrderingOps
+~~~~
+
+The thing to be delighted with is that
+*it is basically the same as the maximum for ints*!
+The only differences are the context bound `T : Ordering`
+(for type safety)
+and the use of the `?<?`
+(my own whim, as `<` woulda worked).
+
+
+Why bother
+==========
+
+So we finally know *what* are typeclasses in Scala,
+but not *why* they exist.
+Their importance lies in the ability to *retroactively* extend types
+to satisfy an interface.
 
