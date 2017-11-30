@@ -1,7 +1,8 @@
 ---
 title: The minimum about Scala typeclasses (using the maximum)
 author: Roberto Bonvallet
-date: 2017-09-02
+date: 2017-11-30
+panflute-filters: ["../../../bin/include.py"]
 abstract: |
     This is a loose transcript of the talk about typeclasses
     I gave in a recent [Santiago Scala Meetup](https://www.meetup.com/es/Santiago-Scala-Meetup/events/240507350/).
