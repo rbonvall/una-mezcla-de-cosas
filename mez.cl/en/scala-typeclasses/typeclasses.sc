@@ -9,9 +9,9 @@ object first {
   // BEGIN MaxOfInts
   def maximum(ns: List[Int]): Int =
     ns match {
-      case      Nil ⇒ ???
-      case n :: Nil ⇒ n
-      case n1 :: n2 :: rest ⇒
+      case      Nil ⇒ ???      // Empty list: not implemented.
+      case n :: Nil ⇒ n        // One element: that's the max.
+      case n1 :: n2 :: rest ⇒  // Two or more: keep one of the first two and repeat.
         if (n1 < n2) maximum(n2 :: rest)
         else         maximum(n1 :: rest)
     }
@@ -22,18 +22,16 @@ object first {
   assert(maximum(List(11, 22)) == 22)
   assert(maximum(List(22, 11)) == 22)
 
-  // BEGIN DateAndPersonTypes
+  // BEGIN DatesAndPersons
   case class Date(year: Int, month: Int, day: Int)
   case class Person(name: String, height: Int, birthDate: Date)
-  // END DateAndPersonTypes
 
-  // BEGIN ListOfPersons
   val ps: List[Person] = List(
     Person("Aaron", 180, Date(1985, 4, 15)),
-    Person("Maria", 155, Date(1998, 3, 31)),
-    Person("Zoila", 175, Date(1998, 9,  1))
+    Person("Maria", 155, Date(1998, 9, 30)),
+    Person("Zoila", 175, Date(1998, 8,  1))
   )
-  // END ListOfPersons
+  // END DatesAndPersons
 
   println("1 :)")
 }
@@ -59,8 +57,8 @@ object second {
 
   val ps: List[Person] = List(
     Person("Aaron", 180, Date(1985, 4, 15)),
-    Person("Maria", 155, Date(1998, 3, 31)),
-    Person("Zoila", 175, Date(1998, 9,  1))
+    Person("Maria", 155, Date(1998, 9, 30)),
+    Person("Zoila", 175, Date(1998, 8,  1))
   )
 
   // BEGIN MaxOfOrdered
@@ -75,7 +73,7 @@ object second {
   // END MaxOfOrdered
 
   assert(maximum(ps).name == "Zoila")
-  assert(maximum(ps.map(_.birthDate)) == Date(1998, 9, 1))
+  assert(maximum(ps.map(_.birthDate)) == Date(1998, 9, 30))
   println("2 :)")
 
 }
@@ -95,26 +93,31 @@ object third {
   // END MaxWithFunction
 
   assert(maximum(ps){ (p1, p2) ⇒ p1.name < p2.name }.name == "Zoila")
+  assert(maximum(ps){ (p1, p2) ⇒ p1.birthDate.month < p2.birthDate.month }.name == "Maria")
   println("3 :)")
 }
 
 object fourth {
   import first.{Person, ps}
 
-  // BEGIN Ordering
+  // BEGIN OrderingObject
   trait Ordering[T] {
     def lessThan   (t1: T, t2: T): Boolean
     def equal      (t1: T, t2: T): Boolean = !lessThan(t1, t2) && !greaterThan(t1, t2)
     def greaterThan(t1: T, t2: T): Boolean = lessThan(t2, t1)
   }
 
+  // For you, my basketball recruiter pal
   object PersonHeightOrdering extends Ordering[Person] {
     def lessThan(t1: Person, t2: Person) = t1.height < t2.height
   }
+  // END OrderingObject
+
+  // BEGIN PersonNameOrdering
   object PersonNameOrdering extends Ordering[Person] {
     def lessThan(t1: Person, t2: Person) = t1.name < t2.name
   }
-  // END Ordering
+  // END PersonNameOrdering
 
   // BEGIN MaxWithOrdering
   def maximum[T](ts: List[T])(ordering: Ordering[T]): T =
@@ -205,7 +208,7 @@ object seventh {
   }
   // END OrderingOps
 
-  // BEGIN MaxWithOrderingOps
+  // BEGIN MaxUsingOrderingOps
   def maximum[T : Ordering](ts: List[T]): T =
     ts match {
       case      Nil ⇒ ???
@@ -214,7 +217,7 @@ object seventh {
         if (t1 ?<? t2) maximum(t2 :: rest)
         else           maximum(t1 :: rest)
     }
-  // END MaxWithOrderingOps
+  // END MaxUsingOrderingOps
 
   val ps: List[Person] = List(
     Person("Aaron", 180, Date(1985, 4, 15)),

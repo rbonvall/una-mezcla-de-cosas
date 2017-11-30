@@ -1,5 +1,5 @@
 ---
-title: The minimum about Scala typeclasses (using the maximum)
+title: Discovering typeclasses in Scala
 author: Roberto Bonvallet
 date: 2017-11-30
 panflute-filters: ["../../../bin/include.py"]
@@ -19,15 +19,10 @@ val ns = List(33, 22, 66, 55, 11, 44)
 And this is a function for computing
 the maximum value of such a list:
 
-~~~~ {.scala}
-def maximum(ns: List[Int]): Int =
-  ns match {
-    case      Nil ⇒ ???
-    case n :: Nil ⇒ n
-    case n1 :: n2 :: rest ⇒
-      if (n1 < n2) maximum(n2 :: rest)
-      else         maximum(n1 :: rest)
-  }
+~~~~ {.include .scala}
+file: typeclasses.sc
+from: BEGIN MaxOfInts
+to:   END MaxOfInts
 ~~~~
 
 Does it work?
@@ -48,191 +43,182 @@ is the use of the ``<`` operator.
 So let’s make this function generic.
 We want it to be polymorphic (so it works on different types)
 and typesafe
-(so it doesn’t work on *any* type,
+(so it doesn’t just work on *any* type,
 with the compiler rejecting uses that don’t make sense).
 
-Our goal will be to find the maximum of a list of persons,
+Our goal will be to find the maximum of the following list of persons,
 whatever that may mean:
 
-~~~~ {.scala}
-case class Date(year: Int, month: Int, day: Int)
-case class Person(name: String, height: Int, birthDate: Date)
-
-val ps: List[Person] = List(
-  Person("Aaron", 180, Date(1985, 4, 15)),
-  Person("Maria", 155, Date(1998, 3, 31)),
-  Person("Zoila", 175, Date(1998, 9,  1))
-)
+~~~~ {.include .scala}
+file: typeclasses.sc
+from: BEGIN DatesAndPersons
+to:   END DatesAndPersons
 ~~~~
 
-One approach is to define an abstract type
+The OO 101 way
+==============
+
+We can define an abstract type
 for things that can be ordered
 and make `Person` implement it,
 let’s say by comparing people by their names.
-This is OO 101:
 
-~~~~ {.scala}
-trait Ordered[T] {
-  def ?<?(that: T): Boolean
-}
-
-case class Person(name: String, height: Int, birthDate: Date) extends Ordered[Person] {
-  def ?<?(that: Person) = this.name < that.name
-}
+~~~~ {.include .scala}
+file: typeclasses.sc
+from: BEGIN Ordered
+to:   END Ordered
 ~~~~
 
-Here I decided to call the comparison method ``?<?``
+Here I decided to name the comparison method ``?<?``
 to make it clear that it‘s not the same operator that we used for integers,
 but ``<`` would have worked equally fine.
 
-Now ``maximum`` can accept anything that “is-an” ordered:
+Now ``maximum`` can accept anything that “is-an” ordered,
+and we indicate this by adding an upper bound to the type parameter `T`:
 
-~~~~ {.scala}
-def maximum[T](ts: List[Ordered[T]]): T =
-  ts match {
-    case      Nil ⇒ ???
-    case t :: Nil ⇒ t
-    case t1 :: t2 :: rest ⇒
-      if (t1 ?<? t2) maximum(t2 :: rest)
-      else           maximum(t1 :: rest)
-  }
+~~~~ {.include .scala}
+file: typeclasses.sc
+from: BEGIN MaxOfOrdered
+to:   END MaxOfOrdered
 ~~~~
 
-And we can find the maximum person:
+And the maximum person is...
 
 ~~~~
-scala> maximum(ps)
-res1: Person = Person(Zoila,175,Date(1998,9,1))
+scala> maximum(ps).name
+res2: String = Zoila
 ~~~~
 
 This is a reasonable approach in many situations,
-but it has some limitations:
+but it suffers from a couple of limitations.
 
-* We have forced persons to be ordered by name;
-  a basketball recruiter probably would prefer to find
-  the maximum person in terms of height,
-  while a birthday party planner would rather
-  find who has the maximum birthday date in the year
-  (I’m just guessing what party planners care about,
-  I’m sure I’m right).
+First, we have forced persons to be ordered by name.
+A basketball recruiter probably would prefer to find
+the maximum person in terms of height,
+while a birthday party planner would rather
+find who has the maximum birthday date of the year
+(I’m just guessing what party planners care about, I’m sure I’m correct).
 
-* Our generic function relies on other developers
-  extending our base type,
-  and none of the code out there in the wild does.
-  Some coder that wants to use our generic function
-  on a type defined by someone else in some other library
-  will have to resort to have to write
-  some kind of adapter.
+Second, our generic function relies on other developers
+extending our base type,
+and none of the code out there in the wild does.
+Some coder that wants to use our generic function
+on a type defined by someone else in an external library
+will have to resort to write some kind of adapter
 
-For this particular use case,
-we also could have put on our lambda-shaped hat,
-requiring the comparison function
-to be passed as a parameter:
+We cannot even use this generic function directly
+on our original list of integers!
 
-~~~~ {.scala}
-def maximum[T](ts: List[T], lessThan: (T, T) ⇒ Boolean): T =
-  ts match {
-    case      Nil ⇒ ???
-    case t :: Nil ⇒ t
-    case t1 :: t2 :: rest ⇒
-      if (lessThan(t1, t2)) maximum(t2 :: rest)
-      else                  maximum(t1 :: rest)
-  }
+
+A functional solution
+=====================
+
+Let’s put on our lambda-shaped hat
+and make the comparison function a parameter of `maximum`:
+
+~~~~ {.include .scala}
+file: typeclasses.sc
+from: BEGIN MaxWithFunction
+to:   END MaxWithFunction
 ~~~~
 
-which is nice and stuff but gets tedious
-if we need more behaviour:
-nobody wants to pass ten functions as arguments.
+Now we can find out who’s the maximum by month of birth,
+a very typical sorting criterion in my hometown:
 
+~~~~
+scala> maximum(ps){ (p1, p2) ⇒ p1.birthDate.month < p2.birthDate.month }.name
+res3: String = Maria
+~~~~
+
+We gained in flexibility
+but this is not necessarily convenient if we need more behaviour:
+nobody wants to pass ten functions as arguments.
 For example,
 a generic function that operates on numeric types
-would need to accept functions to tell it
+may need to accept functions to tell it
 how to add, substract, multiply, divide, etc.
-Or a function operating on values of more than one type
-would force you to pass function arguments
-for each of them.
 
-So, let’s put our lonely method into an object,
-so we have just one thing to pass around
-in case we want to add more operations:
+So, let’s put the comparison function into an object
+so we have just one thing to pass around,
+with a couple of other inherited comparison operations
+so it doesn’t feel so lonely:
 
-~~~~ {.scala}
-object OrderedPerson extends Ordered[Person] {
-  // for you, my basketball recruiter friend
-  def lessThan(p1: Person, p2: Person) = p1.height < p2.height
-
-  // Another operation we could have here
-  def equal(p1: Person, p2: Person) =
-    !lessThan(p1, p2) && !lessThan(p2, p1)
-}
-
-def maximum[T](ts: List[T], ops: Ordered[T]): T =
-  ts match {
-    case      Nil ⇒ ???
-    case t :: Nil ⇒ t
-    case t1 :: t2 :: rest ⇒
-      if (ops.lessThan(t1, t2)) maximum(t2 :: rest)
-      else                      maximum(t1 :: rest)
-  }
+~~~~ {.include .scala}
+file: typeclasses.sc
+from: BEGIN OrderingObject
+to:   END OrderingObject
 ~~~~
 
-Are we there yet?
------------------
+Note that I renamed the base trait,
+since `Person` no longer “is-an” `Ordered` type
+but it rather “has-an” `Ordering`.
 
-At this point we are close to have invented typeclasses,
-so let’s switch the terminology appropiately.
+The maximum function now becomes:
 
-First of all, `Person` no longer *is* an ordered type,
-but rather it *has* an ordering,
-represented by our “bag of functions” `OrderedPerson`.
+~~~~ {.include .scala}
+file: typeclasses.sc
+from: BEGIN MaxWithOrdering
+to:   END MaxWithOrdering
+~~~~
 
-`OrderedPerson` can be seen as a concrete evidence
-that 
+and we can find out who’s the tall guy by passing the right bag of functions:
 
-Enter typeclasses
------------------
+~~~~
+scala> maximum(ps)(PersonHeightOrdering).name
+res4: String = Aaron
+~~~~
 
-Typeclasses are a technique for creating generic code
-that works on any type for which there is evidence
-that it satisfies some interface,
-in a typesafe fashion.
+
+We almost discovered typeclasses!
+=================================
+
+*Typeclasses* are an implementation of polymorphism
+in which generic functions know what to do
+if there is evidence that the data satisfies some interface.
+
+There is something like that in the latest revision of `maximum`:
+`Ordering` is the typeclass
+and the object we pass around is the evidence.
+We say that the object is an *instance* (or *model*) of the typeclass.
+
+But that’s not the real thing,
+because with actual typeclasses you don’t need to pass the evidence along.
+You just use the operations and it Just Works™.
 
 In Haskell, typeclasses are a language feature.
 In Scala, on the other hand,
 they are a pattern (also called “the concept pattern”)
 that is implemented using implicits.
 
-Let’s create a typeclass for types that can be ordered,
-and modify the ``maximum`` function to use it:
+We can begin by making the ordering parameter implicit:
 
-~~~~ {.scala}
-trait Ordering[T] {
-  def lessThan(t1: T, t2: T): Boolean
-}
-def maximum[T](ts: List[T], evidence: Ordering[T]): T =
-  ts match {
-    case      Nil ⇒ ???
-    case t :: Nil ⇒ t
-    case t1 :: t2 :: rest ⇒
-      if (evidence.lessThan(t1, t2)) maximum(t2 :: rest)
-      else                           maximum(t1 :: rest)
-  }
+~~~~ {.include .scala}
+file: typeclasses.sc
+from: BEGIN MaxWithImplicitOrdering
+to:   END MaxWithImplicitOrdering
 ~~~~
 
-Notice that I called it ``Ordering`` rather that ``Ordered`` as above,
-since we will declare that a type “has-an ordering,”
-not that it “is-an ordered.”
-And this is how we could do it:
+and then creating an instance:
 
-~~~~ {.scala}
-object PersonHasOrdering extends Ordering[Person] {
-  def lessThan(p1: Person, p2: Person) = p1.height < p2.height
-}
+~~~~ {.include .scala}
+file: typeclasses.sc
+from: BEGIN PersonNameOrdering
+to:   END PersonNameOrdering
 ~~~~
 
-And now:
+which we’ll make the implicit ordering in this context:
+
+TODO: ADD SNIPPET
+
+so we can just call `maximum` with no extra arguments:
 
 ~~~~
-scala> maximum(people, PersonHasOrdering)
-res1: Person = Person(...)
+scala> maximum(ps).name
+res5: String = Zoila
 ~~~~
+
+But we have just swept the explicitness under the rug!
+The function still knows that it’s getting an `Ordering` instance.
+
+
+
