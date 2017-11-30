@@ -1,3 +1,5 @@
+// vim: ft=scala
+
 object first {
 
   // BEGIN ListOfIntegers
