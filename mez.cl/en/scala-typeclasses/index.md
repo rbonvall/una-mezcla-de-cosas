@@ -96,8 +96,10 @@ First, we have forced persons to be ordered by name.
 A basketball recruiter probably would prefer to find
 the maximum person in terms of height,
 while a birthday party planner would rather
-find who has the maximum birthday date of the year
-(I’m just guessing what party planners care about, I’m sure I’m correct).
+find who has the maximum birthday date of the year.
+
+(I’m just guessing what party planners care about,
+I’m sure I’m correct).
 
 Second, our generic function relies on other developers
 extending our base type,
@@ -135,7 +137,7 @@ but this is not necessarily convenient if we need more behaviour:
 nobody wants to pass ten functions as arguments.
 For example,
 a generic function that operates on numeric types
-may need to accept functions to tell it
+may require many arguments in order to tell it
 how to add, substract, multiply, divide, etc.
 
 So, let’s put the comparison function into an object
@@ -172,25 +174,27 @@ res4: String = Aaron
 We almost discovered typeclasses!
 =================================
 
-*Typeclasses* are an implementation of polymorphism
+*Typeclasses* are an approach to polymorphism
 in which generic functions know what to do
 if there is evidence that the data satisfies some interface.
 
-There is something like that in the latest revision of `maximum`:
+There is something like that in the last version
+of the `maximum` function:
 `Ordering` is the typeclass
 and the object we pass around is the evidence.
 We say that the object is an *instance* (or *model*) of the typeclass.
 
-But that’s not the real thing,
+But that’s still not the real thing,
 because with actual typeclasses you don’t need to pass the evidence along.
-You just use the operations and it Just Works™.
+You simply use the operations and it Just Works™.
 
 In Haskell, typeclasses are a language feature.
 In Scala, on the other hand,
 they are a pattern (also called “the concept pattern”)
 that is implemented using implicits.
 
-We can begin by making the ordering parameter implicit:
+To illustrate how it works,
+we can begin by making the ordering parameter implicit:
 
 ~~~~ {.include .scala}
 file: typeclasses.sc
@@ -208,7 +212,11 @@ to:   END PersonNameOrdering
 
 which we’ll make the implicit ordering in this context:
 
-TODO: ADD SNIPPET
+~~~~ {.include .scala}
+file: typeclasses.sc
+from: BEGIN SetImplicitOrdering
+to:   END SetImplicitOrdering
+~~~~
 
 so we can just call `maximum` with no extra arguments:
 
@@ -220,7 +228,8 @@ res5: String = Zoila
 But we have just swept the explicitness under the rug!
 The function still knows that it’s getting an `Ordering` instance.
 Scala provides a shortcut for not having to list the implicit parameter
-(making it doubly implicit), which is the *context bound* syntax:
+(making it doubly implicit, I guess),
+which is the *context bound* syntax:
 
 ~~~~ {.include .scala}
 file: typeclasses.sc
@@ -228,11 +237,12 @@ from: BEGIN MaxWithContextBound
 to:   END MaxWithContextBound
 ~~~~
 
-The type parameter `[T : Ordering]` states that
-there needs to be an implicit instance of `Ordering[T]`
+The context-bounded type parameter `[T : Ordering]` states that
+there needs to be implicit evidence of `Ordering[T]`
 for the funcion to be used,
-but you may have already noticed that there is still a bit of ugliness:
-in order to call the `lessThan` method
+but you may have already noticed
+that this still introduces an additional bit of ugliness:
+in order to be able to call the `lessThan` method,
 the instance needs to be summoned using `implicitly[Ordering[T]]`.
 
 
@@ -259,17 +269,39 @@ to:   END MaxUsingOrderingOps
 
 The thing to be delighted with is that
 *it is basically the same as the maximum for ints*!
-The only differences are the context bound `T : Ordering`
-(for type safety)
-and the use of the `?<?`
-(my own whim, as `<` woulda worked).
+The only differences are the context bound `[T : Ordering]`
+(for typesafely demanding the evidence)
+and the use of `?<?` for comparing
+(on my own whim, as `<` is just as good).
 
 
 Why bother
 ==========
 
 So we finally know *what* are typeclasses in Scala,
-but not *why* they exist.
-Their importance lies in the ability to *retroactively* extend types
-to satisfy an interface.
+but not *why* would anyone care.
+
+I will not go into details,
+but it is easy to see that
+their importance lies in the ability to *retroactively* extend types
+to satisfy a certain interface.
+This allows very generic libraries to exist, like Scalaz and Cats,
+by leveraging well-known abstractions
+such as monoids, functors, applicatives and monads.
+
+This was me documenting my own path
+to understanding typeclasses from first principles.
+There are plenty of other tutorials out there for you to learn more.
+[_How to make ad-hoc polymorphism less ad hoc_](https://people.csail.mit.edu/dnj/teaching/6898/papers/wadler88.pdf)
+(the paper that introduced the idea) and
+[_Type Classes as Objects and Implicits_](http://ropas.snu.ac.kr/~bruno/papers/TypeClasses.pdf)
+(the “typeclasses in Scala” paper)
+are both readable and enlightening.
+Read them!
+
+_If you liked what you just read,
+you can subscribe to this site
+by keeping it open in a tab in your browser
+and pressing F5 once a day._
+
 

@@ -56,7 +56,7 @@ def main(): Unit = {
       implicit def symToVar(s: Symbol): Variable = Variable(s)
     }
 
-    val `5!` = Application('a, 'b)
+    val `5!` = 'a $ 'b
 
   }
 
