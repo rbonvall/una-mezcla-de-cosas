@@ -1,6 +1,6 @@
 ---
 title: A DSL for λ-terms in Scala
-date: 2017-12-xx
+date: 2017-12-03
 author: Roberto Bonvallet
 panflute-filters: ["../../../bin/include.py"]
 ---
