@@ -301,7 +301,7 @@ Read them!
 
 _If you liked what you just read,
 you can subscribe to this site
-by keeping it open in a tab in your browser
+by keeping it open in a browser tab
 and pressing F5 once a day._
 
 
