@@ -70,7 +70,7 @@
   -->
   <p>
     <span class="date">Never</span>
-    <span class="title">A proof of P ≠ NP</span>
+    <span class="title" id="yeahright">A proof of P ≠ NP</span>
   </p>
   <p>
     <span class="date">Not that soon</span>
@@ -96,3 +96,14 @@
 
 <footer>
 </footer>
+
+<script>
+  const e = document.getElementById('yeahright');
+  if (e !== null) {
+    window.setInterval(() => {
+      const t = e.textContent;
+      e.textContent = t.includes('≠') ? t.replace('≠', '=') : t.replace('=', '≠');
+    }, 10000);
+  }
+</script>
+
