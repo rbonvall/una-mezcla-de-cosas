@@ -60,17 +60,45 @@ object Primes {
   println(integers)  // Stream(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, ?)
   println(primes)    // Stream(2, 3, 5, 7, 11, ?)
   // END PrintedAfterGettingPrime
+
+  // BEGIN PrimePeople
+  val people = List("Alicia", "Bernardo", "Cristóbal", "Débora", "Ernesto")
+  println(people zip primes)
+  // List((Alicia,2), (Bernardo,3), (Cristóbal,5), (Débora,7), (Ernesto,11))
+  // END PrimePeople
 }
 Primes
 
+// BEGIN OnesAndTwos
 val onesAndTwos = Stream.continually(List(1, 2)).flatten
+// END OnesAndTwos
 
-def rest(kolakoski: Stream[Int]): Stream[Int] = {
-  kolakoski.drop(2) zip onesAndTwos flatMap { case (k, n) ⇒ Seq.fill(k)(n) }
+// BEGIN AlternativeOnesAndTwos
+val onesAndTwos2 = Stream.from(0).map(_ % 2 + 1)
+val onesAndTwos3 = Stream.iterate(1) { case 1 ⇒ 2 case 2 ⇒ 1 }
+val onesAndTwos4 = Stream.iterate(1)(3 - _)
+val onesAndTwos5: Stream[Int] = 1 #:: 2 #:: onesAndTwos5
+// END AlternativeOnesAndTwos
+
+val manyOnesAndTwos = onesAndTwos.take(30)
+assert(onesAndTwos2 startsWith manyOnesAndTwos)
+assert(onesAndTwos3 startsWith manyOnesAndTwos)
+assert(onesAndTwos4 startsWith manyOnesAndTwos)
+assert(onesAndTwos5 startsWith manyOnesAndTwos)
+
+// BEGIN SeqFill
+val fourHorsemen = Seq.fill(4)("horseman")
+assert(fourHorsemen == Seq("horseman", "horseman", "horseman", "horseman"))
+// END SeqFill
+
+// BEGIN KolakoskiRest
+def rest(runLengths: Stream[Int]): Stream[Int] = {
+  runLengths zip onesAndTwos flatMap { case (k, n) ⇒ Seq.fill(k)(n) }
 }
+// END KolakoskiRest
 
 // BEGIN RecursiveKolakoski
-val kolakoski: Stream[Int] = 1 #:: 2 #:: 2 #:: rest(kolakoski)
+val kolakoski: Stream[Int] = 1 #:: 2 #:: 2 #:: rest(kolakoski.drop(2))
 // END RecursiveKolakoski
 
 val expectedKolakoski = List(1, 2, 2, 1, 1, 2, 1, 2, 2, 1, 2, 2, 1, 1, 2, 1, 1, 2, 2, 1, 2, 1, 1)

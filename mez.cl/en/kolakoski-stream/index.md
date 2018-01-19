@@ -1,6 +1,6 @@
 ---
 title: The Kolakoski stream
-date: 2018-01-14
+date: 2018-01-19
 author: Roberto Bonvallet
 panflute-filters: ["../../../bin/include.py"]
 ---
@@ -70,8 +70,7 @@ This is a very interesting sequence,
 with all sorts of cool properties.
 Some of them are very profound
 and, to some degree, have a level of spiritual relevance
-that trascends their mere existence
-as a set of numbers
+that trascends their mere existence from a set of numbers
 by reflecting the way in which the universe looks into itself.
 
 The previous paragraph was just a filler
@@ -130,7 +129,7 @@ Streams
 
 In Scala, a stream is a linked list whose tail is lazily evaluated.
 In other words, it knows what its first element is
-but it doesn’t know the rest of the elements until someone asks for them:
+but it doesn’t know the rest until someone asks for them:
 
 ~~~~ {.include .scala}
 file: kolakoski.sc
@@ -150,15 +149,22 @@ First, streams are good for describing infinite sequences.
 As long as we don’t do anything stupid,
 such as computing the average of its values
 or trying to get its last element,
-laziness will take care of 
+laziness will take care of
+making a stream appear as if it had no end.
 
-Second, streams can be manipulated and transformed as any other Scala collection.
-The standard library also provides some convenient functions
+Second, streams can be manipulated and transformed
+just like any other Scala collection.
+Also, the standard library provides some convenient functions
 to create streams that we can use as a starting point.
 
-In order to accustom ourselves to the idea,
-let’s look at some examples.
-This is the stream of all the integers numbers:
+In order to accustom ourselves
+to the idea of manipulating an infinite sequence,
+let’s examine some examples.
+
+A stream of no odd stuff
+------------------------
+
+This is the stream of all the integers:
 
 ~~~~ {.include .scala}
 file: kolakoski.sc
@@ -184,7 +190,8 @@ to:   END EvenIntegersWithMap
 
 This, again, is the stream of all the even integers,
 described as its initial value
-and an operation for getting the next one every time:
+and an operation for getting a new one
+from the previous one:
 
 ~~~~ {.include .scala}
 file: kolakoski.sc
@@ -193,7 +200,8 @@ to:   END EvenIntegersWithIterate
 ~~~~
 
 Finally, this is the stream of even integers
-described in terms of itself:
+described in terms of itself by using `#::`,
+the stream cons operator:
 
 ~~~~ {.include .scala}
 file: kolakoski.sc
@@ -204,8 +212,9 @@ to:   END EvenIntegersRecursive
 A prime stream
 --------------
 
-Let’s create, one more time, the stream of the integers.
-If we print it, we’ll see that it only knows it starts with zero:
+Let’s create, one more time, the stream of integers.
+When we print it, we’ll see that it only knows it starts with zero.
+Nobody has any idea what could be there after that:
 
 ~~~~ {.include .scala}
 file: kolakoski.sc
@@ -222,7 +231,7 @@ to:   END PrimeStream
 ~~~~
 
 The prime stream knows it starts with 2,
-but to find that out it needed to consume
+and to learn that it needed to consume
 a couple of values from the integer stream:
 
 ~~~~ {.include .scala}
@@ -241,9 +250,24 @@ from: BEGIN PrintedAfterGettingPrime
 to:   END PrintedAfterGettingPrime
 ~~~~
 
+And now comes the party trick:
+one can assign one prime number to each person
+without worrying about how many people there are!
+
+~~~~ {.include .scala}
+file: kolakoski.sc
+from: BEGIN PrimePeople
+to:   END PrimePeople
+~~~~
+
+You can tell how fun my parties can get.
+
+
 Back to Kolakoski
 -----------------
 
+The Kolakoski sequence begins with 1, 2, and 2,
+and then it uses itself to calculate the rest of the values:
 
 ~~~~ {.include .scala}
 file: kolakoski.sc
@@ -251,17 +275,57 @@ from: BEGIN RecursiveKolakoski
 to:   END RecursiveKolakoski
 ~~~~
 
+Note that we have to drop the first two members of the sequence
+since the first two runs are already provided.
 
+The numbers in the sequence tell how long each run is,
+but not what the number in the run is.
+For that we need an infinite sequence of alternating ones and twos,
+which I’ll define like this:
 
-Homework
---------
-If you got this far I appreciate your patience,
-and I will reward you with even more tiresome work.
+~~~~ {.include .scala}
+file: kolakoski.sc
+from: BEGIN OnesAndTwos
+to:   END OnesAndTwos
+~~~~
 
-From the first one million elements,
-what’s the 
+Can you think of other ways to create that sequence?
+I know I can:
 
+~~~~ {.include .scala}
+file: kolakoski.sc
+from: BEGIN AlternativeOnesAndTwos
+to:   END AlternativeOnesAndTwos
+~~~~
 
+Creating one run of the same thing
+is something Scala already knows how to do:
 
+~~~~ {.include .scala}
+file: kolakoski.sc
+from: BEGIN SeqFill
+to:   END SeqFill
+~~~~
+
+What’s left is just assembling the pieces.
+And when working with collections,
+“assembling the pieces” is spelled with an `f`:
+
+~~~~ {.include .scala}
+file: kolakoski.sc
+from: BEGIN KolakoskiRest
+to:   END KolakoskiRest
+~~~~
+
+Simple, isn’t it?
+Streams are an effective way to define this infinite sequence
+in a way that corresponds quite directly to the prose description,
+once you learn what `#:: is` and how `flatMap` is pronounced.
+
+_If you liked this post,
+I invite you to continue lazily reading
+the infinite stream of articles
+I have created for my fine visitors.
+Be aware that evaluation could take a while._
 
 

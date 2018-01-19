@@ -1,5 +1,5 @@
 TEMPLATE = ../../../templates/template.html
-CODE = kola.sc
+CODE = kolakoski.sc
 
 index.html: index.md $(TEMPLATE) $(CODE)
 	pandoc --standalone --template=$(TEMPLATE) $< -o $@ -F panflute
