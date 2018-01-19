@@ -320,7 +320,7 @@ to:   END KolakoskiRest
 Simple, isn’t it?
 Streams are an effective way to define this infinite sequence
 in a way that corresponds quite directly to the prose description,
-once you learn what `#:: is` and how `flatMap` is pronounced.
+once you learn what `#::` is and how `flatMap` is pronounced.
 
 _If you liked this post,
 I invite you to continue lazily reading
