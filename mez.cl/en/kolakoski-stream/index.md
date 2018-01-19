@@ -308,7 +308,7 @@ to:   END SeqFill
 ~~~~
 
 What’s left is just assembling the pieces.
-And when working with collections,
+And when it comes to collections,
 “assembling the pieces” is spelled with an `f`:
 
 ~~~~ {.include .scala}
