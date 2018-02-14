@@ -47,7 +47,7 @@ of some random YouTube video.
 
 Also, no social media “share” or “like” buttons.
 You’ll have to make the effort of copying and pasting the URL like a caveman
-if you want to post this dud for your online entourage to mock.
+if you want to post this dud site for your online entourage to mock.
 And for fake internet points
 I’ll keep turning to old trusty Mersenne Twister.
 

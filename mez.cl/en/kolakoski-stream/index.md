@@ -161,8 +161,8 @@ In order to accustom ourselves
 to the idea of manipulating an infinite sequence,
 let’s examine some examples.
 
-A stream of no odd stuff
-------------------------
+No odd stuff in this stream
+---------------------------
 
 This is the stream of all the integers:
 
