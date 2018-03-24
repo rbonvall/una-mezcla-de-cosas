@@ -1,9 +1,5 @@
-index.html: index.md template.html lambda.sc
-	pandoc --standalone --template=template.html $< -o $@ -F panflute
+ROOT = ../../..
+TEMPLATE = $(ROOT)/templates/template.html
+CODE = lambda.sc
 
-.PHONY: test
-test: lambda.sc
-	amm $<
-
-watch:
-	while inotifywait -qre close_write .; do make; done
+include $(ROOT)/makefiles/simple.mk

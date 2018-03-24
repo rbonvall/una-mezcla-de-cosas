@@ -1,10 +1,4 @@
-index.html: index.md template.html
-	pandoc --standalone --template=template.html $< -o $@
+ROOT = ../../..
+TEMPLATE = $(ROOT)/templates/template.html
 
-watch:
-	while inotifywait -qre close_write .; do make; done
-
-clean:
-	rm -vi index.html
-
-.PHONY: watch clean
+include $(ROOT)/makefiles/simple.mk

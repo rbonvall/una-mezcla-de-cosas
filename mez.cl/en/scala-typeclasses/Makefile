@@ -1,13 +1,5 @@
-index.html: index.md template.html typeclasses.sc
-	pandoc --standalone --template=template.html $< -o $@ -F panflute
+ROOT = ../../..
+TEMPLATE = $(ROOT)/templates/template.html
+CODE = typeclasses.sc
 
-test: typeclasses.sc
-	amm $<
-
-watch:
-	while inotifywait -qre close_write .; do make; done
-
-clean:
-	rm -v index.html
-
-.PHONY: test watch clean
+include $(ROOT)/makefiles/simple.mk

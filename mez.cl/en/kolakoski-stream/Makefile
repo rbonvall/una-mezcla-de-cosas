@@ -1,16 +1,5 @@
-TEMPLATE = ../../../templates/template.html
+ROOT = ../../..
+TEMPLATE = $(ROOT)/templates/template.html
 CODE = kolakoski.sc
 
-index.html: index.md $(TEMPLATE) $(CODE)
-	pandoc --standalone --template=$(TEMPLATE) $< -o $@ -F panflute
-
-.PHONY: test
-test: $(CODE)
-	amm $<
-
-.PHONY: clean
-clean:
-	rm -vi index.html
-
-watch:
-	while inotifywait -qre close_write .; do make; done
+include $(ROOT)/makefiles/simple.mk
